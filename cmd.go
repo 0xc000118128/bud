@@ -80,6 +80,8 @@ func (c *LsCmd) Main() cobra.PositionalArgs {
 			return items[i].Name < items[j].Name
 		})
 
+		var totalIncome, totalExpense float64
+
 		t := table.NewWriter()
 		t.SetOutputMirror(os.Stdout)
 
@@ -102,11 +104,34 @@ func (c *LsCmd) Main() cobra.PositionalArgs {
 				printer.Sprint(item.Currency),
 				printer.Sprintf("%.2f", item.Confidence),
 			})
+
+			switch item.Type {
+			case "income":
+				totalIncome += item.Amount
+			case "expense":
+				totalExpense += item.Amount
+			}
 		}
 
 		t.SetStyle(table.Style{Box: table.StyleBoxDefault})
 
 		t.Render()
+
+		green := color.FgGreen
+		red := color.FgRed
+
+		fmt.Printf("\nTotal Income: %s%.2f PEN\n", green.Sprintf("+"), totalIncome)
+		fmt.Printf("Total Expense: %s%.2f PEN\n", red.Sprintf("-"), totalExpense)
+
+		net := totalIncome - totalExpense
+		if net > 0 {
+			fmt.Printf("Net Balance: %s%.2f PEN\n", green.Sprintf("+"), net)
+		} else if net < 0 {
+			fmt.Printf("Net Balance: %s%.2f PEN\n", red.Sprintf("-"), -net)
+		} else {
+			fmt.Printf("Net Balance: %.2f PEN\n", net)
+		}
+
 		return nil
 	}
 }
